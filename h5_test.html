@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <ul class="space-y-4">
+            <li>
+                <button id="button1" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded w-full transition duration-300">
+                    返回
+                </button>
+            </li>
+            <li>
+                <button id="button2" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded w-full transition duration-300">
+                    打开App
+                </button>
+            </li>
+            <li>
+                <button id="button3" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full transition duration-300">
+                    跳转
+                </button>
+            </li>
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const button1 = document.getElementById('button1');
+            const button2 = document.getElementById('button2');
+            const button3 = document.getElementById('button3');
+
+            button1.addEventListener('click', function () {
+                //alert('你点击了按钮 1');
+                var obj = {"type":"back", "url":"https://apps.apple.com/cn/app/id6740514825"};
+                window.webkit.messageHandlers.backFun.postMessage(obj);
+            });
+
+            button2.addEventListener('click', function () {
+                //alert('你点击了按钮 2');
+                var obj = {"type":"app", "url":"https://apps.apple.com/cn/app/id6740514825"};
+                window.webkit.messageHandlers.backFun.postMessage(obj);
+            });
+
+            button3.addEventListener('click', function () {
+                //alert('你点击了按钮 3');
+                var obj = {"type":"web", "url":"https://www.baidu.com/"};
+                window.webkit.messageHandlers.backFun.postMessage(obj);
+            });
+        });
+    </script>
+</body>
+
+</html>    
