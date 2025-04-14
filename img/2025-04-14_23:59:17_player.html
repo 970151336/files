@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    header span {
+      font-size: 20px;
+    }
+
+    header i {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    #video-player {
+      width: 100%;
+      height: 300px;
+      background-color: black;
+      margin-bottom: 20px;
+    }
+
+    #episode-switch {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin: 0 20px;
+      position: relative;
+    }
+
+    #episode-switch span {
+      font-size: 18px;
+      color: blue;
+      margin-right: 10px;
+    }
+
+    #episode-switch button {
+      font-size: 18px;
+      color: blue;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    #episode-dropdown {
+      display: none;
+      position: absolute;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      z-index: 100;
+    }
+
+    #episode-dropdown button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 5px 0;
+      cursor: pointer;
+      color: #333;
+    }
+  </style>
+  <title>梦想总动员剧集播放</title>
+</head>
+
+<body>
+  <video id="video-player"></video>
+  <div id="episode-switch">
+    <span>正在播放～：</span>
+    <span id="current-episode">3</span>
+    <button id="switch-episode">点击切换剧集</button>
+    <i class="fa fa-arrow-right"></i>
+    <div id="episode-dropdown">
+    </div>
+  </div>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  <script>
+    // 模拟剧集列表，实际应用中可从后端获取
+const episodes = [
+  { id: 1, videoSrc: "http://cdn.xiaozhiming.vip/uploads/20240730/35772e4261f2bec57b4285ace87a2d7d.mp4 " },
+  { id: 2, videoSrc: "http://cdn.xiaozhiming.vip/uploads/20240730/35772e4261f2bec57b4285ace87a2d7d.mp4 " },
+  { id: 3, videoSrc: "http://cdn.xiaozhiming.vip/uploads/20240730/35772e4261f2bec57b4285ace87a2d7d.mp4 " },
+  { id: 4, videoSrc: "http://cdn.xiaozhiming.vip/uploads/20240730/35772e4261f2bec57b4285ace87a2d7d.mp4 " }
+];
+
+const currentEpisodeElement = document.getElementById('current-episode');
+const switchEpisodeButton = document.getElementById('switch-episode');
+const episodeDropdown = document.getElementById('episode-dropdown');
+let currentEpisodeIndex = 2; // 初始为第3集，索引从0开始
+const videoPlayer = document.getElementById('video-player');
+
+function updateEpisodeDisplay() {
+  currentEpisodeElement.textContent = episodes[currentEpisodeIndex].id;
+}
+
+function renderEpisodeDropdown() {
+  episodeDropdown.innerHTML = '';
+  episodes.forEach((episode, index) => {
+    const button = document.createElement('button');
+    button.textContent = `第 ${episode.id} 集`;
+    button.addEventListener('click', () => {
+      currentEpisodeIndex = index;
+      updateEpisodeDisplay();
+      episodeDropdown.style.display = 'none';
+      // 这里添加实际切换视频播放的逻辑，例如：
+
+      videoPlayer.src = episode.videoSrc;
+      videoPlayer.load();
+      videoPlayer.play();
+    });
+    episodeDropdown.appendChild(button);
+  });
+}
+
+function toggleEpisodeDropdown() {
+  if (episodeDropdown.style.display === 'none') {
+    episodeDropdown.style.display = 'block';
+  } else {
+    episodeDropdown.style.display = 'none';
+  }
+}
+
+updateEpisodeDisplay();
+renderEpisodeDropdown();
+switchEpisodeButton.addEventListener('click', toggleEpisodeDropdown);
+
+// 这里添加实际切换视频播放的逻辑，例如：
+videoPlayer.src = episodes[0].videoSrc;
+videoPlayer.load();
+videoPlayer.play();
+  </script>
+</body>
+
+</html>
