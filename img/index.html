@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小程序首页</title>
+    <script src="js-sdk.js"></script>
+    <script src="vconsole-3.15.1.min.js"></script>
+    <style>
+        .btn { padding: 12px 24px; margin: 10px; background: #007AFF; color: white; border: none; border-radius: 4px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-top: 30px;">小程序首页</h1>
+    <button class="btn" onclick="goToPage2()">跳转到第二页</button>
+    <button class="btn" onclick="showMap()">显示地图</button>
+    <button class="btn" onclick="getCache()">读取缓存</button>
+    <button class="btn" onclick="playVideo()">播放视频</button>
+
+    <script>
+        new VConsole();
+        // 播放网络视频（示例URL）
+          function playVideo() {
+              miniApp.playVideo({
+                  url: 'https://v-cdn.zjol.com.cn/280443.mp4' // 测试视频URL
+              }, function(res) {
+                  console.log('视频加载结果：', res);
+              });
+          }
+        // 跳转第二页
+        function goToPage2() {
+            miniApp.navigateTo({
+                url: 'page2.html'
+            }, function(res) {
+                console.log('跳转结果：', res);
+            });
+        }
+
+        // 显示地图（成都坐标）
+        function showMap() {
+            miniApp.showMap({
+                lat: 30.67987,
+                lng: 104.06743
+            }, function(res) {
+                console.log('地图显示结果：', JSON.stringify(res));
+            });
+        }
+
+        // 读取缓存
+        function getCache() {
+            miniApp.getCacheData('userInfo', function(res) {
+                console.log('缓存数据：' + JSON.stringify(res));
+                
+            });
+        }
+
+        // 生命周期-暂停
+        miniApp.onPause = function() {
+            console.log('小程序进入后台');
+        };
+    </script>
+</body>
+</html>

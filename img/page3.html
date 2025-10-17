@@ -1,0 +1,396 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        const formattedDate = (new Date()).toLocaleString('zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 2,
+        });
+        console.log("脚本开始加载："+formattedDate);
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>消息中心</title>
+    <script type="text/javascript" src="/static/js/MpLoading.js"></script>
+</head>
+<body>
+</body>
+    <script>
+
+        MpLoading.show();
+
+        // 页面加载时执行创建
+        window.addEventListener('DOMContentLoaded', () => {
+            const formattedDate = (new Date()).toLocaleString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 2,
+
+            });
+            console.log("初始化完成,可以操作 DOM 了："+formattedDate);
+
+        });
+        window.addEventListener('load', function() {
+            const formattedDate = (new Date()).toLocaleString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 2,
+
+            });
+            console.log("整个网页（含所有资源）已完全加载："+formattedDate);
+        });
+
+        setTimeout(() => {
+            // 动态创建页面结构的主函数
+            function createScript(){
+                var loadCount = 0;
+                const scriptUrls = [
+                    'https://cdn.tailwindcss.com',
+                    '../static/js/MpKit.js',
+                ];
+                scriptUrls.forEach(url => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.type = 'text/javascript';
+                    script.async = true;
+                    // 加载状态处理
+                    script.onload = function() {
+                        console.log('script loaded successfully: ' + url);
+                        loadCount++;
+                        if (loadCount == scriptUrls.length){
+                            createAdStyles();
+                            createTailwindConfig();
+                            createTailwindUtilities();
+                            createPageStructure();
+                        }
+                    };
+
+                    script.onerror = function() {
+                        console.error('Failed to load script: ' + url);
+                        loadCount++;
+                        if (loadCount == scriptUrls.length){
+                            createAdStyles();
+                            createTailwindConfig();
+                            createTailwindUtilities();
+                            createPageStructure();
+                        }
+                    };
+                    document.head.appendChild(script);
+                });
+
+                const cssUrls = [
+                    'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css',
+                    // '../static/js/MpKit.css',
+                ];
+                cssUrls.forEach(url => {
+                    const link = document.createElement('link');
+                    link.href = url;
+                    link.rel = 'stylesheet';
+                    link.async = false; // 按顺序加载
+
+                    // 加载状态处理
+                    link.onload = function() {
+                        console.log('css loaded successfully: ' + url);
+                    };
+
+                    link.onerror = function() {
+                        console.error('Failed to load css: ' + url);
+                    };
+                    document.head.appendChild(link);
+                });
+            }
+            function createPageStructure() {
+                // 创建<body>元素并设置基础样式
+                const body = document.body;//document.createElement('body');
+                body.className = 'bg-gray-50 font-sans text-gray-800';
+
+                // 依次创建各部分并添加到body
+                body.appendChild(createHeader());       // 顶部导航
+                body.appendChild(createAdSection());    // 广告区域
+                body.appendChild(createMessageContainer()); // 消息列表容器
+
+                // 将生成的body替换现有body
+                //document.body.parentNode.replaceChild(body, document.body);
+
+                // 绑定事件和初始化数据（复用之前的消息逻辑）
+                initMessageEvents();
+
+                const adItem = document.getElementById("ad");
+                MpKit.loadNativeAd(adItem,0,"1.0|1.0|1.0|1.0");
+                MpLoading.hide();
+            }
+            // 动态生成 Tailwind 自定义工具类样式
+            function createTailwindUtilities() {
+                // 创建 style 标签并指定 type
+                const style = document.createElement('style');
+                style.type = 'text/tailwindcss'; // 关键：指定为 tailwindcss 类型
+
+                // 自定义工具类内容（与原样式一致）
+                const utilitiesContent = `
+        @layer utilities {
+            .message-item {
+                @apply flex p-4 border-b border-gray-100 hover:bg-light transition-colors duration-200 cursor-pointer;
+            }
+            .message-unread {
+                @apply bg-blue-50/50;
+            }
+            .unread-dot {
+                @apply w-2 h-2 rounded-full bg-unread mr-3 mt-1.5;
+            }
+        }
+    `;
+
+                // 将内容添加到 style 标签
+                style.textContent = utilitiesContent.trim();
+
+                // 插入到 head 中（确保在 Tailwind 处理前加载）
+                document.head.appendChild(style);
+            }
+            // 动态生成 Tailwind 配置脚本
+            function createTailwindConfig() {
+                // 创建 script 标签
+                const script = document.createElement('script');
+
+                // Tailwind 配置内容（与原脚本一致）
+                const configContent = `
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#6B7280',
+                        light: '#F9FAFB',
+                        unread: '#EF4444'
+                    }
+                }
+            }
+        }
+    `;
+
+                // 将配置内容添加到 script 标签
+                script.textContent = configContent.trim(); // 去除首尾空行，保持整洁
+
+                // 将 script 标签插入到 head 中（确保在 Tailwind 核心脚本之后加载，避免配置被覆盖）
+                // 通常建议放在 head 末尾，或 Tailwind CSS 引入之后
+                document.head.appendChild(script);
+            }
+            // 动态生成广告区域的样式
+            function createAdStyles() {
+                // 创建style标签
+                const style = document.createElement('style');
+
+                // 编写样式规则（与原CSS一致）
+                const cssRules = `
+        #ad {
+            overflow: scroll;
+            -webkit-overflow-scrolling: touch;
+            height: 0px;
+            /* background-color: orange; */
+        }
+        /* 针对 WebKit 内核浏览器（Chrome、Safari 等） */
+        #ad::-webkit-scrollbar {
+            display: none; /* 隐藏滚动条 */
+        }`;
+
+                // 将样式规则添加到style标签
+                style.textContent = cssRules;
+
+                // 将style标签插入到head中
+                document.head.appendChild(style);
+            }
+            // 创建顶部导航栏
+            function createHeader() {
+                const header = document.createElement('header');
+                header.className = 'bg-white shadow-sm sticky top-0 z-10';
+
+                const container = document.createElement('div');
+                container.className = 'container mx-auto px-4 py-4 flex justify-between items-center';
+
+                const title = document.createElement('h1');
+                title.className = 'text-xl font-bold';
+                title.textContent = '系统消息';
+
+                const markAllBtn = document.createElement('button');
+                markAllBtn.id = 'mark-all-read';
+                markAllBtn.className = 'text-primary text-sm hover:text-primary/80 transition-colors';
+                markAllBtn.textContent = '全部标为已读';
+
+                container.appendChild(title);
+                container.appendChild(markAllBtn);
+                header.appendChild(container);
+
+                return header;
+            }
+            // 创建广告区域
+            function createAdSection() {
+                const adContainer = document.createElement('div');
+                adContainer.id = 'ad';
+
+                const adContent = document.createElement('div');
+                adContent.style.width = '150%';
+                adContent.style.height = '100%';
+                adContent.textContent = 'Ad loading...';
+
+                adContainer.appendChild(adContent);
+                return adContainer;
+            }
+            // 创建消息列表容器（包含统计和列表区域）
+            function createMessageContainer() {
+                const container = document.createElement('div');
+                container.className = 'container mx-auto px-4 py-2';
+
+                // 消息数量统计区域
+                const countSection = document.createElement('div');
+                countSection.className = 'py-3 flex justify-between items-center text-sm';
+
+                const totalCount = document.createElement('span');
+                totalCount.innerHTML = '共 <span id="total-count">0</span> 条消息';
+
+                const unreadCount = document.createElement('span');
+                unreadCount.className = 'text-unread';
+                unreadCount.innerHTML = '未读 <span id="unread-count">0</span> 条';
+
+                countSection.appendChild(totalCount);
+                countSection.appendChild(unreadCount);
+
+                // 消息列表区域
+                const messageList = document.createElement('div');
+                messageList.id = 'message-list';
+                messageList.className = 'bg-white rounded-lg shadow-sm overflow-hidden';
+
+                // 空状态区域
+                const emptyState = document.createElement('div');
+                emptyState.id = 'empty-state';
+                emptyState.className = 'py-20 text-center hidden';
+
+                const emptyIconWrap = document.createElement('div');
+                emptyIconWrap.className = 'inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4';
+
+                const emptyIcon = document.createElement('i');
+                emptyIcon.className = 'fa fa-envelope-o text-2xl text-gray-400';
+
+                const emptyText = document.createElement('p');
+                emptyText.className = 'text-gray-500';
+                emptyText.textContent = '暂无系统消息';
+
+                emptyIconWrap.appendChild(emptyIcon);
+                emptyState.appendChild(emptyIconWrap);
+                emptyState.appendChild(emptyText);
+                messageList.appendChild(emptyState);
+
+                // 组合容器
+                container.appendChild(countSection);
+                container.appendChild(messageList);
+
+                return container;
+            }
+            // 初始化消息事件和数据
+            function initMessageEvents() {
+                // 消息数据
+                const messageData = [
+                    {
+                        id: 1,
+                        title: "系统维护通知",
+                        content: "本周日晚23:00-次日2:00将进行系统维护，期间可能无法正常使用，敬请谅解",
+                        time: "2023-10-15 09:30",
+                        isRead: false
+                    },
+                    {
+                        id: 2,
+                        title: "新功能上线",
+                        content: "个人中心新增「消息设置」功能，可自定义消息接收方式",
+                        time: "2023-10-12 14:15",
+                        isRead: true
+                    },
+                    {
+                        id: 3,
+                        title: "安全提醒",
+                        content: "检测到您的账号在新设备登录，如非本人操作请及时修改密码",
+                        time: "2023-10-10 20:45",
+                        isRead: false
+                    }
+                ];
+                // 初始化消息列表（修正后）
+                function initMessageList(messages) {
+                    const listEl = document.getElementById('message-list');
+                    const emptyState = document.getElementById('empty-state'); // 先缓存空状态元素
+
+                    // 关键修正：只删除列表中的消息元素，保留空状态
+                    // 遍历子元素，删除所有非空状态的元素（消息项）
+                    Array.from(listEl.children).forEach(child => {
+                        if (child.id !== 'empty-state') {
+                            listEl.removeChild(child);
+                        }
+                    });
+
+                    // 处理空状态显示
+                    handleEmptyState(messages.length === 0);
+
+                    // 生成并添加消息元素
+                    messages.forEach(msg => {
+                        listEl.appendChild(createMessageElement(msg));
+                    });
+
+                    // 更新统计数字
+                    updateMessageCount(messages);
+                }
+
+                // 创建单条消息
+                function createMessageElement(message) {
+                    const div = document.createElement('div');
+                    div.className = `px-4 py-3 border-b last:border-0 ${message.isRead ? '' : 'bg-blue-50'}`;
+                    div.innerHTML = `
+            <div class="flex gap-3">
+                ${!message.isRead ? '<div class="w-1 bg-primary rounded-full mt-1"></div>' : ''}
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3 class="font-medium ${!message.isRead ? 'text-gray-900' : 'text-gray-700'} truncate">${message.title}</h3>
+                        <span class="text-xs text-gray-500 whitespace-nowrap">${message.time}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 line-clamp-2">${message.content}</p>
+                </div>
+            </div>
+        `;
+
+                    div.addEventListener('click', () => {
+                        if (!message.isRead) {
+                            message.isRead = true;
+                            initMessageList(messageData);
+                        }
+                    });
+
+                    return div;
+                }
+
+                // 更新消息计数
+                function updateMessageCount(messages) {
+                    document.getElementById('total-count').textContent = messages.length;
+                    document.getElementById('unread-count').textContent = messages.filter(m => !m.isRead).length;
+                }
+
+                // 处理空状态
+                function handleEmptyState(isEmpty) {
+                    document.getElementById('empty-state').classList.toggle('hidden', !isEmpty);
+                }
+
+                // 全部标为已读事件
+                document.getElementById('mark-all-read').addEventListener('click', () => {
+                    messageData.forEach(m => m.isRead = true);
+                    initMessageList(messageData);
+                });
+
+                // 初始渲染
+                initMessageList(messageData);
+            }
+
+            createScript();
+
+        }, 500); // 此处为核心修改，已改为5秒
+
+    </script>
+</html>
