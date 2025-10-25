@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>邀请好友 - 易程网络</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1E88E5',
+            secondary: '#FF6B00',
+            dark: '#1A1A2E',
+            light: '#F5F7FA'
+          },
+          fontFamily: {
+            sans: ['PingFang SC', 'Helvetica Neue', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #1E88E5 0%, #3949AB 100%);
+      }
+      .card-shadow {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800">
+  <!-- 顶部导航 -->
+  <header class="gradient-bg text-white shadow-md">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="#" class="flex items-center">
+        <i class="fa fa-arrow-left mr-2"></i>
+        <span>返回</span>
+      </a>
+      <h1 class="text-lg font-semibold">邀请好友</h1>
+      <div class="w-6"></div> <!-- 占位元素，保持标题居中 -->
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- 邀请奖励卡片 -->
+    <section class="bg-white rounded-2xl p-6 mb-6 card-shadow">
+      <div class="text-center mb-6">
+        <h2 class="text-[clamp(1.25rem,5vw,1.75rem)] font-bold text-gray-800 mb-2">邀请好友，双方共赢</h2>
+        <p class="text-gray-500">每成功邀请1位好友，您和好友都可获得奖励</p>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-50 rounded-xl p-4 text-center">
+          <p class="text-gray-500 text-sm mb-1">您的奖励</p>
+          <p class="text-primary text-2xl font-bold">¥20</p>
+          <p class="text-gray-400 text-xs mt-1">现金红包</p>
+        </div>
+        <div class="bg-orange-50 rounded-xl p-4 text-center">
+          <p class="text-gray-500 text-sm mb-1">好友奖励</p>
+          <p class="text-secondary text-2xl font-bold">¥15</p>
+          <p class="text-gray-400 text-xs mt-1">现金红包</p>
+        </div>
+      </div>
+      
+      <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <h3 class="font-semibold mb-2 flex items-center">
+          <i class="fa fa-info-circle text-primary mr-2"></i>
+          奖励说明
+        </h3>
+        <ul class="text-gray-600 text-sm space-y-2">
+          <li class="flex items-start">
+            <i class="fa fa-check-circle text-green-500 mt-1 mr-2 text-xs"></i>
+            <span>好友完成注册并实名认证后，双方即可获得奖励</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-check-circle text-green-500 mt-1 mr-2 text-xs"></i>
+            <span>邀请奖励可直接提现到绑定的银行卡</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-check-circle text-green-500 mt-1 mr-2 text-xs"></i>
+            <span>邀请无上限，多邀多得，奖励可累计</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+    
+    <!-- 邀请码区域 -->
+    <section class="bg-white rounded-2xl p-6 mb-6 card-shadow">
+      <h3 class="font-semibold mb-4">我的邀请码</h3>
+      
+      <div class="flex items-center justify-between bg-gray-50 rounded-xl p-4 mb-4">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+            <i class="fa fa-key"></i>
+          </div>
+          <span class="font-bold text-lg" id="inviteCode">YC872910</span>
+        </div>
+        <button id="copyBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm flex items-center">
+          <i class="fa fa-copy mr-1"></i> 复制
+        </button>
+      </div>
+      
+      <div class="text-center text-sm text-gray-500">
+        <p>好友注册时填写此邀请码，双方均可获得奖励</p>
+      </div>
+    </section>
+    
+    <!-- 邀请方式 -->
+    <section class="bg-white rounded-2xl p-6 mb-6 card-shadow">
+      <h3 class="font-semibold mb-4">邀请方式</h3>
+      
+      <div class="grid grid-cols-3 gap-4">
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+            <i class="fa fa-weixin text-xl"></i>
+          </div>
+          <span class="text-sm">微信好友</span>
+        </button>
+        
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-2">
+            <i class="fa fa-qq text-xl"></i>
+          </div>
+          <span class="text-sm">QQ好友</span>
+        </button>
+        
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-2">
+            <i class="fa fa-link text-xl"></i>
+          </div>
+          <span class="text-sm">复制链接</span>
+        </button>
+        
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center mb-2">
+            <i class="fa fa-qrcode text-xl"></i>
+          </div>
+          <span class="text-sm">二维码</span>
+        </button>
+        
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-2">
+            <i class="fa fa-weibo text-xl"></i>
+          </div>
+          <span class="text-sm">微博</span>
+        </button>
+        
+        <button class="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 hover:border-primary hover:text-primary transition-colors">
+          <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-2">
+            <i class="fa fa-share-alt text-xl"></i>
+          </div>
+          <span class="text-sm">更多</span>
+        </button>
+      </div>
+    </section>
+    
+    <!-- 邀请记录 -->
+    <section class="bg-white rounded-2xl p-6 mb-16 card-shadow">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold">邀请记录</h3>
+        <a href="#" class="text-primary text-sm">查看全部</a>
+      </div>
+      
+      <!-- 记录列表 -->
+      <div class="space-y-4">
+        <!-- 记录项1 -->
+        <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+          <div>
+            <h4 class="font-medium">张**</h4>
+            <p class="text-gray-500 text-xs">2023-06-15 完成注册</p>
+          </div>
+          <span class="text-green-500 font-medium">+¥20</span>
+        </div>
+        
+        <!-- 记录项2 -->
+        <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+          <div>
+            <h4 class="font-medium">李**</h4>
+            <p class="text-gray-500 text-xs">2023-06-10 完成注册</p>
+          </div>
+          <span class="text-green-500 font-medium">+¥20</span>
+        </div>
+        
+        <!-- 记录项3 -->
+        <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+          <div>
+            <h4 class="font-medium">王**</h4>
+            <p class="text-gray-500 text-xs">2023-06-05 已注册，未认证</p>
+          </div>
+          <span class="text-gray-400 text-sm">待奖励</span>
+        </div>
+      </div>
+      
+      <!-- 累计数据 -->
+      <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between">
+        <div class="text-center">
+          <p class="text-gray-500 text-sm">累计邀请</p>
+          <p class="font-bold text-lg">3人</p>
+        </div>
+        <div class="text-center">
+          <p class="text-gray-500 text-sm">已获奖励</p>
+          <p class="font-bold text-lg text-green-500">¥40</p>
+        </div>
+        <div class="text-center">
+          <p class="text-gray-500 text-sm">待领取奖励</p>
+          <p class="font-bold text-lg">¥20</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部按钮 -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+    <button class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center">
+      <i class="fa fa-share-alt mr-2"></i>
+      立即邀请好友
+    </button>
+  </footer>
+
+  <!-- 复制成功提示 -->
+  <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-lg text-sm hidden z-50">
+    邀请码已复制立即邀请好友立即邀请好友立即邀请好友立即邀请好友
+  </div>
+
+  <script>
+    // 复制邀请码功能
+    const copyBtn = document.getElementById('copyBtn');
+    const inviteCode = document.getElementById('inviteCode').textContent;
+    const toast = document.getElementById('toast');
+    
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(inviteCode).then(() => {
+        // 显示提示
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+          //toast.classList.add('hidden');
+        }, 2000);
+        
+        // 按钮状态变化
+        copyBtn.innerHTML = '<i class="fa fa-check mr-1"></i> 已复制';
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="fa fa-copy mr-1"></i> 复制';
+        }, 2000);
+      });
+    });
+    
+    // 模拟分享按钮点击效果
+    const shareButtons = document.querySelectorAll('section:nth-child(3) button');
+    shareButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const originalText = this.querySelector('span').textContent;
+        this.querySelector('span').textContent = '已发送';
+        
+        setTimeout(() => {
+          this.querySelector('span').textContent = originalText;
+        }, 1500);
+      });
+    });
+    
+    // 页面滚动时调整底部按钮样式
+    window.addEventListener('scroll', () => {
+      const footer = document.querySelector('footer');
+      if (window.scrollY > 100) {
+        footer.classList.add('shadow-lg');
+      } else {
+        footer.classList.remove('shadow-lg');
+      }
+    });
+  </script>
+</body>
+</html>
