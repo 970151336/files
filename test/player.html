@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正在播放</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        dark: '#1E293B',
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .play-btn-shadow {
+                box-shadow: 0 0 0 15px rgba(22, 93, 255, 0.2);
+            }
+            .play-btn-hover {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 20px rgba(22, 93, 255, 0.3);
+            }
+            .progress-thumb {
+                transform: scale(0);
+                transition: transform 0.2s ease;
+            }
+            .progress-container:hover .progress-thumb {
+                transform: scale(1);
+            }
+        }
+    </style>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background-color: black;
+        }
+        #videoPlayer {
+            object-fit: cover;
+            background-color: black;
+        }
+        .controls {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .video-container:hover .controls {
+            opacity: 1;
+        }
+        .volume-slider {
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        .volume-container:hover .volume-slider {
+            width: 100px;
+        }
+    </style>
+</head>
+<body class="bg-black">
+    <div class="video-container relative w-full h-screen">
+        <!-- 视频元素 -->
+        <video
+            id="videoPlayer"
+            class="absolute inset-0 w-full h-full"
+            playsinline
+            webkit-playsinline
+            autoplay
+            src="http://129.204.117.172/tv/adlive.m3u8?bt=40&cdn=1"
+        >
+            不支持播放
+        </video>
+        
+        <!-- 中央播放/暂停按钮 -->
+        <button id="playPauseBtn" class="absolute inset-0 m-auto w-24 h-24 rounded-full bg-primary/90 text-white flex items-center justify-center opacity-0 transition-all duration-300 pointer-events-none play-btn-shadow">
+            <i id="playIcon" class="fa fa-play text-4xl ml-2"></i>
+            <i id="pauseIcon" class="fa fa-pause text-4xl hidden"></i>
+        </button>
+        
+        <!-- 底部控制栏 -->
+        <div class="controls absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+            <!-- 进度条 -->
+            <div class="progress-container relative mb-4" style="display: none;">
+                <div class="h-1.5 bg-white/30 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-primary rounded-full w-0 relative">
+                        <div class="progress-thumb absolute -right-2 -top-1.5 w-5 h-5 bg-white rounded-full shadow-lg"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制按钮和时间 -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="playPauseBtnSmall" class="text-white hover:text-primary transition-colors">
+                        <i class="fa fa-play text-xl"></i>
+                    </button>
+                    
+                    <div class="volume-container flex items-center gap-2">
+                        <button id="muteBtn" class="text-white hover:text-primary transition-colors">
+                            <i id="volumeIcon" class="fa fa-volume-up"></i>
+                        </button>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" class="volume-slider h-1 bg-white/30 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+                
+                <div class="text-white text-sm">
+                    <span id="currentTime">00:00</span>
+                    <span>/</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button id="pipBtn" class="text-white hover:text-primary transition-colors">
+                        <i class="fa fa-clone"></i>
+                    </button>
+                    <button id="fullscreenBtn" class="text-white hover:text-primary transition-colors">
+                        <i class="fa fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 加载指示器 -->
+        <div id="loadingIndicator" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="w-16 h-16 border-4 border-white/30 border-t-primary rounded-full animate-spin"></div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const videoPlayer = document.getElementById('videoPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseBtnSmall = document.getElementById('playPauseBtnSmall');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const progressBar = document.getElementById('progressBar');
+        const currentTime = document.getElementById('currentTime');
+        const totalTime = document.getElementById('totalTime');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const pipBtn = document.getElementById('pipBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const videoContainer = document.querySelector('.video-container');
+        
+        
+        const controlButtonm = document.querySelector('.controls');
+
+        let timer;
+
+        // 显示中央播放/暂停按钮
+        function showPlayPauseButton() {
+            // 取消 setTimeout
+            if (timer) {
+                clearTimeout(timer);
+                console.log('计时已取消');
+                timer = null;
+            }
+            playPauseBtn.classList.remove('opacity-0');
+            playPauseBtn.classList.add('opacity-100');
+            controlButtonm.style.opacity = 1;
+            // 添加动画效果
+            /*
+            setTimeout(() => {
+                playPauseBtn.classList.add('play-btn-hover');
+            }, 50);
+             */
+            
+            // 1.5秒后隐藏按钮
+            timer = setTimeout(() => {
+                playPauseBtn.classList.remove('opacity-100');
+                playPauseBtn.classList.add('opacity-0');
+                playPauseBtn.classList.remove('play-btn-hover');
+                controlButtonm.style.opacity = 0;
+            }, 1500);
+        }
+        
+        // 更新播放/暂停图标
+        function updatePlayPauseIcon() {
+            if (videoPlayer.paused) {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                playPauseBtnSmall.innerHTML = '<i class="fa fa-play text-xl"></i>';
+            } else {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                playPauseBtnSmall.innerHTML = '<i class="fa fa-pause text-xl"></i>';
+            }
+        }
+        
+        // 切换播放/暂停状态
+        function togglePlayPause() {
+            if (videoPlayer.paused) {
+                showLoading();
+                videoPlayer.play();
+            } else {
+                hideLoading();
+                videoPlayer.pause();
+            }
+            showPlayPauseButton();
+            updatePlayPauseIcon();
+        }
+        
+        // 更新进度条和时间显示
+        function updateProgress() {
+            const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // 更新当前时间
+            currentTime.textContent = formatTime(videoPlayer.currentTime);
+            
+            // 如果视频已加载完成，更新总时间
+            if (videoPlayer.duration) {
+                totalTime.textContent = formatTime(videoPlayer.duration);
+            }
+        }
+        
+        // 格式化时间为 MM:SS 格式
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 点击进度条跳转到指定位置
+        function scrub(e) {
+            const scrubTime = (e.offsetX / progressBar.parentElement.offsetWidth) * videoPlayer.duration;
+            videoPlayer.currentTime = scrubTime;
+        }
+        
+        // 全屏切换
+        function toggleFullscreen() {
+            const isPaused = videoPlayer.paused;
+            videoPlayer.pause();
+            videoPlayer.removeAttribute('playsinline');
+            videoPlayer.removeAttribute('webkit-playsinline');
+            videoPlayer.play();
+            videoPlayer.setAttribute('playsinline','');
+            videoPlayer.setAttribute('webkit-playsinline','');
+            if (isPaused) videoPlayer.pause();
+            return;
+            
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(err => {
+                    console.error(`全屏请求错误: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        
+        // 静音切换
+        function toggleMute() {
+            videoPlayer.muted = !videoPlayer.muted;
+            updateVolumeUI();
+        }
+        
+        // 更新音量UI
+        function updateVolumeUI() {
+            if (videoPlayer.muted || videoPlayer.volume === 0) {
+                volumeIcon.className = 'fa fa-volume-off';
+                volumeSlider.value = 0;
+            } else if (videoPlayer.volume < 0.5) {
+                volumeIcon.className = 'fa fa-volume-down';
+            } else {
+                volumeIcon.className = 'fa fa-volume-up';
+            }
+        }
+        
+        // 设置音量
+        function setVolume() {
+            videoPlayer.volume = volumeSlider.value;
+            videoPlayer.muted = volumeSlider.value === 0;
+            updateVolumeUI();
+        }
+        
+        // 画中画模式
+        function togglePiP() {
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture();
+            } else if (document.pictureInPictureEnabled) {
+                videoPlayer.requestPictureInPicture();
+            }
+        }
+        
+        // 显示加载指示器
+        function showLoading() {
+            console.log('waiting');
+            loadingIndicator.classList.remove('opacity-0');
+            loadingIndicator.classList.add('opacity-100');
+        }
+        
+        // 隐藏加载指示器
+        function hideLoading() {
+            console.log('playing');
+            loadingIndicator.classList.remove('opacity-100');
+            loadingIndicator.classList.add('opacity-0');
+        }
+        
+        // 键盘控制
+        function handleKeydown(e) {
+            switch (e.key.toLowerCase()) {
+                case ' ':
+                case 'k':
+                    togglePlayPause();
+                    e.preventDefault();
+                    break;
+                case 'f':
+                    toggleFullscreen();
+                    e.preventDefault();
+                    break;
+                case 'm':
+                    toggleMute();
+                    e.preventDefault();
+                    break;
+                case 'arrowright':
+                    videoPlayer.currentTime += 10;
+                    e.preventDefault();
+                    break;
+                case 'arrowleft':
+                    videoPlayer.currentTime -= 10;
+                    e.preventDefault();
+                    break;
+                case 'arrowup':
+                    videoPlayer.volume = Math.min(1, videoPlayer.volume + 0.1);
+                    volumeSlider.value = videoPlayer.volume;
+                    updateVolumeUI();
+                    e.preventDefault();
+                    break;
+                case 'arrowdown':
+                    videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
+                    volumeSlider.value = videoPlayer.volume;
+                    updateVolumeUI();
+                    e.preventDefault();
+                    break;
+            }
+        }
+        
+        // 事件监听
+        videoPlayer.addEventListener('click', togglePlayPause);
+        playPauseBtn.addEventListener('click', (e) => e.stopPropagation());
+        playPauseBtnSmall.addEventListener('click', togglePlayPause);
+        videoPlayer.addEventListener('timeupdate', updateProgress);
+        
+        // 进度条交互
+        let mousedown = false;
+        progressBar.parentElement.addEventListener('click', scrub);
+        progressBar.parentElement.addEventListener('mousemove', (e) => mousedown && scrub(e));
+        progressBar.parentElement.addEventListener('mousedown', () => mousedown = true);
+        progressBar.parentElement.addEventListener('mouseup', () => mousedown = false);
+        
+        // 全屏控制
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', () => {
+            fullscreenBtn.innerHTML = document.fullscreenElement
+                ? '<i class="fa fa-compress"></i>'
+                : '<i class="fa fa-expand"></i>';
+        });
+        
+        // 音量控制
+        muteBtn.addEventListener('click', toggleMute);
+        volumeSlider.addEventListener('input', setVolume);
+        
+        // 画中画控制
+        pipBtn.addEventListener('click', togglePiP);
+        
+        // 加载状态
+        videoPlayer.addEventListener('waiting', showLoading);
+        videoPlayer.addEventListener('playing', hideLoading);
+        
+        // 视频元数据加载后更新UI
+        videoPlayer.addEventListener('loadedmetadata', () => {
+            console.log('loadedmetadata');
+            updatePlayPauseIcon();
+            updateProgress();
+        });
+        
+        showLoading();
+
+    </script>
+</body>
+</html>
