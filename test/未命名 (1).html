@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>畅影视频</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 768px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* 顶部轮播区域 */
+        .top-banner {
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .banner-swiper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+        
+        .banner-item {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .banner-title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            padding: 0 10px;
+        }
+        
+        /* 功能按钮区 */
+        .function-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            text-align: center;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .function-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+        }
+        
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+        }
+        
+        .watch-history { background-color: #e6f7ff; }
+        .hot { background-color: #ffe6e6; }
+        .new { background-color: #fff0e6; }
+        .free { background-color: #e6ffe6; }
+        .svip { background-color: #f0f0f0; }
+        
+        .btn-text {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 分类标题样式 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .more-btn {
+            color: #999;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 影片列表 */
+        .movie-list {
+            display: flex;
+            overflow-x: auto;
+            padding: 0 10px 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .movie-list::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .movie-list-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            width: calc(100% + 20px);
+            padding-bottom: 10px;
+        }
+        
+        .movie-card {
+            position: relative;
+            /*width: 100px;*/
+                        width: 0.33*calc(0% + 0px);
+            height: 180px;
+            margin: 0 10px 20px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .vip-tag {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 2px 5px;
+            font-size: 10px;
+            border-radius: 2px;
+        }
+        
+        .movie-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 8px 5px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .movie-title {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-desc {
+            font-size: 10px;
+            opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        
+        .share-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #666;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部轮播区域 -->
+        <div class="top-banner">
+            <div class="banner-swiper">
+                <div class="banner-item" style="background-image: url('https://via.placeholder.com/400x200/f06/fff?text=热门大片1')"></div>
+                <div class="banner-item" style="background-image: url('https://via.placeholder.com/400x200/f60/fff?text=热播剧集2')"></div>
+                <div class="banner-item" style="background-image: url('https://via.placeholder.com/400x200/06f/fff?text=最新电影3')"></div>
+            </div>
+            <div class="banner-title">轻松攒云朵 免费看大片</div>
+        </div>
+        
+        <!-- 功能按钮区 -->
+        <div class="function-bar">
+            <div class="function-btn">
+                <div class="btn-icon watch-history"></div>
+                <div class="btn-text">观看历史</div>
+            </div>
+            <div class="function-btn">
+                <div class="btn-icon hot"></div>
+                <div class="btn-text">热门</div>
+            </div>
+            <div class="function-btn">
+                <div class="btn-icon new"></div>
+                <div class="btn-text">新片</div>
+            </div>
+            <div class="function-btn">
+                <div class="btn-icon free"></div>
+                <div class="btn-text">免费</div>
+            </div>
+            <div class="function-btn">
+                <div class="btn-icon svip"></div>
+                <div class="btn-text">SVIP</div>
+            </div>
+        </div>
+        
+        <!-- 热门影片 -->
+        <div class="section-header">
+            <div class="section-title">热门影片</div>
+            <div class="more-btn">更多 ></div>
+        </div>
+        
+        <div class="movie-list">
+            <div class="movie-list-wrap">
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=恶意')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">恶意</div>
+                        <div class="movie-desc">张小斐梅婷深陷悬疑...</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=坚如磐石')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">坚如磐石</div>
+                        <div class="movie-desc">于和伟设鸿门宴</div>
+                    </div>
+                </div>
+                                
+                                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=坚如磐石')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">坚如磐石</div>
+                        <div class="movie-desc">于和伟设鸿门宴</div>
+                    </div>
+                </div>
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=坚如磐石')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">坚如磐石</div>
+                        <div class="movie-desc">于和伟设鸿门宴</div>
+                    </div>
+                </div>
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=坚如磐石')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">坚如磐石</div>
+                        <div class="movie-desc">于和伟设鸿门宴</div>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=猫猫漂流')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">猫猫的奇幻漂流</div>
+                        <div class="movie-desc">奥斯卡获奖作品</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分隔线 -->
+        <div style="height: 10px; background: #f5f5f5;"></div>
+        
+        <!-- 新片 -->
+        <div class="section-header">
+            <div class="section-title">新片</div>
+            <div class="more-btn">更多 ></div>
+        </div>
+        
+        <div class="movie-list">
+            <div class="movie-list-wrap">
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=路过来')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">路过来</div>
+                        <div class="movie-desc">第70届戛纳电影节...</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=分手清单')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">分手清单</div>
+                        <div class="movie-desc">欧豪曾梦雪drama...</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=得宠先生')"></div>
+                    <div class="vip-tag">SVIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">得宠先生（粤）</div>
+                        <div class="movie-desc">温情港片双向治愈</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分隔线 -->
+        <div style="height: 10px; background: #f5f5f5;"></div>
+        
+        <!-- 喜剧 -->
+        <div class="section-header">
+            <div class="section-title">喜剧：笑得合不拢嘴</div>
+            <div class="more-btn">更多 ></div>
+        </div>
+        
+        <div class="movie-list">
+            <div class="movie-list-wrap">
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=保你平安')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">保你平安</div>
+                        <div class="movie-desc">大鹏李雪琴爆笑辟谣</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=戏杀')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">戏杀</div>
+                        <div class="movie-desc">贾冰揭秘谜案迷中谜</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=交换人生')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">交换人生</div>
+                        <div class="movie-desc">雷佳音约会小斐</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=红毯先生')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">红毯先生</div>
+                        <div class="movie-desc">娱乐圈的众生百态</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分隔线 -->
+        <div style="height: 10px; background: #f5f5f5;"></div>
+        
+        <!-- 动画 -->
+        <div class="section-header">
+            <div class="section-title">动画：梦里的童话</div>
+            <div class="more-btn">更多 ></div>
+        </div>
+        
+        <div class="movie-list">
+            <div class="movie-list-wrap">
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=海底小纵队')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">海底小纵队：...</div>
+                        <div class="movie-desc">小纵队寻宝遇海啸</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=雄狮少年')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">雄狮少年2</div>
+                        <div class="movie-desc">雄狮小队热血逐梦...</div>
+                    </div>
+                </div>
+                
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-image: url('https://via.placeholder.com/120x180/333/fff?text=落凡尘')"></div>
+                    <div class="vip-tag">VIP</div>
+                    <div class="movie-info">
+                        <div class="movie-title">落凡尘（粤语）</div>
+                        <div class="movie-desc">人神兄妹对决星宿</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 实现轮播功能
+        let currentIndex = 0;
+        const banners = document.querySelectorAll('.banner-item');
+        const totalBanners = banners.length;
+        
+        function nextBanner() {
+            currentIndex = (currentIndex + 1) % totalBanners;
+            updateBanner();
+        }
+        
+        function updateBanner() {
+            document.querySelector('.banner-swiper').style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+        
+        // 设置轮播间隔
+        setInterval(nextBanner, 3000);
+        
+        // 添加点击事件
+        const movieCards = document.querySelectorAll('.movie-card');
+        movieCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // 在实际应用中这里会跳转到详情页
+                alert('跳转到影片详情页');
+            });
+        });
+        
+        // 功能按钮点击事件
+        const functionBtns = document.querySelectorAll('.function-btn');
+        functionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.querySelector('.btn-icon').classList[1];
+                alert(`切换到${type === 'watch-history' ? '观看历史' : 
+                       type === 'hot' ? '热门' : 
+                       type === 'new' ? '新片' : 
+                       type === 'free' ? '免费' : 'SVIP'}页面`);
+            });
+        });
+    </script>
+</body>
+</html>
