@@ -1,318 +1,60 @@
-<!DOCTYPE html>
-<!-- saved from url=(0048)https://fenghaigo.github.io/appstore_viewer.html -->
-<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <html>
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+      <title>正在播放</title>
+
     
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Store 页面查看器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* 标题区域 */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: white;
-            font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-        }
-
-        /* 按钮区域 */
-        .button-section {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .section-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .region-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 25px;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .region-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .region-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .region-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .region-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .region-btn span {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 热门地区特殊样式 */
-        .region-btn.hot {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .region-btn.hot:hover {
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .button-section {
-                padding: 20px;
-            }
-
-            .region-btn {
-                padding: 10px 16px;
-                font-size: 13px;
-            }
-        }
-
-        /* 底部信息 */
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- 标题区域 -->
-        <div class="header">
-            <h1>🌍 App Store 页面</h1>
-            <p>选择地区，在新标签页中打开对应的 App Store 页面</p>
-        </div>
-
-        <!-- 按钮区域 -->
-        <div class="button-section">
-            <div class="section-title">
-                <span>🔥</span>
-                <span>热门地区</span>
-            </div>
-            <div class="button-group" id="hotRegions">
-                <!-- 热门地区按钮将通过 JavaScript 动态生成 -->
-           </div>
-
-            <div class="section-title" style="margin-top: 30px;">
-                <span>🌐</span>
-                <span>其它地区</span>
-            </div>
-            <div class="button-group" id="allRegions">
-                <!-- 所有地区按钮将通过 JavaScript 动态生成 -->
-           </div>
-        </div>
-
-        <!-- 底部信息 -->
-        <div class="footer">
-            <p>点击任意地区按钮，将在新标签页中打开对应的 App Store Today 页面</p>
-        </div>
-    </div>
-
-    <script>
-        // 所有地区配置（按热门程度排序，中国排第一）
-        const allRegions = [
-            // 热门地区（中国排第一）
-            { code: 'cn', name: '🇨🇳 中国大陆', lang: 'zh-CN', hot: true },
-            { code: 'us', name: '🇺🇸 美国', lang: 'en', hot: true },
-            { code: 'hk', name: '🇭🇰 中国香港', lang: 'zh-HK', hot: true },
-            { code: 'tw', name: '🇨🇳 中国台湾', lang: 'zh-TW', hot: true },
-            { code: 'jp', name: '🇯🇵 日本', lang: 'ja', hot: true },
-            { code: 'kr', name: '🇰🇷 韩国', lang: 'ko', hot: true },
-            { code: 'gb', name: '🇬🇧 英国', lang: 'en', hot: true },
-            { code: 'ca', name: '🇨🇦 加拿大', lang: 'en', hot: true },
-            { code: 'au', name: '🇦🇺 澳大利亚', lang: 'en', hot: true },
-            { code: 'de', name: '🇩🇪 德国', lang: 'de', hot: true },
-            { code: 'fr', name: '🇫🇷 法国', lang: 'fr', hot: true },
-            { code: 'es', name: '🇪🇸 西班牙', lang: 'es', hot: true },
-            { code: 'it', name: '🇮🇹 意大利', lang: 'it', hot: true },
-            { code: 'ru', name: '🇷🇺 俄罗斯', lang: 'ru', hot: true },
-            { code: 'br', name: '🇧🇷 巴西', lang: 'pt-BR', hot: true },
-            { code: 'in', name: '🇮🇳 印度', lang: 'en', hot: true },
-            { code: 'sg', name: '🇸🇬 新加坡', lang: 'en', hot: true },
-            { code: 'my', name: '🇲🇾 马来西亚', lang: 'en', hot: true },
-            { code: 'th', name: '🇹🇭 泰国', lang: 'th', hot: true },
-            { code: 'id', name: '🇮🇩 印度尼西亚', lang: 'id', hot: true },
-            { code: 'nl', name: '🇳🇱 荷兰', lang: 'nl', hot: false },
-            { code: 'be', name: '🇧🇪 比利时', lang: 'nl', hot: false },
-            { code: 'ch', name: '🇨🇭 瑞士', lang: 'de', hot: false },
-            { code: 'at', name: '🇦🇹 奥地利', lang: 'de', hot: false },
-            { code: 'se', name: '🇸🇪 瑞典', lang: 'sv', hot: false },
-            { code: 'no', name: '🇳🇴 挪威', lang: 'no', hot: false },
-            { code: 'dk', name: '🇩🇰 丹麦', lang: 'da', hot: false },
-            { code: 'fi', name: '🇫🇮 芬兰', lang: 'fi', hot: false },
-            { code: 'pl', name: '🇵🇱 波兰', lang: 'pl', hot: false },
-            { code: 'cz', name: '🇨🇿 捷克', lang: 'cs', hot: false },
-            { code: 'ie', name: '🇮🇪 爱尔兰', lang: 'en', hot: false },
-            { code: 'pt', name: '🇵🇹 葡萄牙', lang: 'pt', hot: false },
-            { code: 'gr', name: '🇬🇷 希腊', lang: 'el', hot: false },
-            { code: 'tr', name: '🇹🇷 土耳其', lang: 'tr', hot: false },
-            { code: 'sa', name: '🇸🇦 沙特阿拉伯', lang: 'ar', hot: false },
-            { code: 'ae', name: '🇦🇪 阿联酋', lang: 'ar', hot: false },
-            { code: 'il', name: '🇮🇱 以色列', lang: 'he', hot: false },
-            { code: 'za', name: '🇿🇦 南非', lang: 'en', hot: false },
-            { code: 'eg', name: '🇪🇬 埃及', lang: 'ar', hot: false },
-            { code: 'nz', name: '🇳🇿 新西兰', lang: 'en', hot: false },
-            { code: 'mx', name: '🇲🇽 墨西哥', lang: 'es', hot: false },
-            { code: 'ar', name: '🇦🇷 阿根廷', lang: 'es', hot: false },
-            { code: 'cl', name: '🇨🇱 智利', lang: 'es', hot: false },
-            { code: 'co', name: '🇨🇴 哥伦比亚', lang: 'es', hot: false },
-            { code: 'pe', name: '🇵🇪 秘鲁', lang: 'es', hot: false },
-            { code: 've', name: '🇻🇪 委内瑞拉', lang: 'es', hot: false },
-            { code: 'ph', name: '🇵🇭 菲律宾', lang: 'en', hot: false },
-            { code: 'vn', name: '🇻🇳 越南', lang: 'vi', hot: false },
-            { code: 'pk', name: '🇵🇰 巴基斯坦', lang: 'en', hot: false },
-            { code: 'bd', name: '🇧🇩 孟加拉', lang: 'bn', hot: false },
-            { code: 'ro', name: '🇷🇴 罗马尼亚', lang: 'ro', hot: false },
-            { code: 'hu', name: '🇭🇺 匈牙利', lang: 'hu', hot: false },
-            { code: 'bg', name: '🇧🇬 保加利亚', lang: 'bg', hot: false },
-            { code: 'sk', name: '🇸🇰 斯洛伐克', lang: 'sk', hot: false },
-            { code: 'hr', name: '🇭🇷 克罗地亚', lang: 'hr', hot: false },
-            { code: 'si', name: '🇸🇮 斯洛文尼亚', lang: 'sl', hot: false },
-            { code: 'ee', name: '🇪🇪 爱沙尼亚', lang: 'et', hot: false },
-            { code: 'lv', name: '🇱🇻 拉脱维亚', lang: 'lv', hot: false },
-            { code: 'lt', name: '🇱🇹 立陶宛', lang: 'lt', hot: false },
-            { code: 'is', name: '🇮🇸 冰岛', lang: 'is', hot: false },
-            { code: 'lu', name: '🇱🇺 卢森堡', lang: 'fr', hot: false },
-            { code: 'mt', name: '🇲🇹 马耳他', lang: 'en', hot: false },
-            { code: 'cy', name: '🇨🇾 塞浦路斯', lang: 'el', hot: false },
-            { code: 'mo', name: '🇲🇴 澳门', lang: 'zh-MO', hot: false },
-            { code: 'kw', name: '🇰🇼 科威特', lang: 'ar', hot: false },
-            { code: 'qa', name: '🇶🇦 卡塔尔', lang: 'ar', hot: false },
-            { code: 'om', name: '🇴🇲 阿曼', lang: 'ar', hot: false },
-            { code: 'bh', name: '🇧🇭 巴林', lang: 'ar', hot: false },
-            { code: 'jo', name: '🇯🇴 约旦', lang: 'ar', hot: false },
-            { code: 'lb', name: '🇱🇧 黎巴嫩', lang: 'ar', hot: false },
-            { code: 'kz', name: '🇰🇿 哈萨克斯坦', lang: 'ru', hot: false },
-            { code: 'uz', name: '🇺🇿 乌兹别克斯坦', lang: 'uz', hot: false },
-            { code: 'ge', name: '🇬🇪 格鲁吉亚', lang: 'ka', hot: false },
-            { code: 'am', name: '🇦🇲 亚美尼亚', lang: 'hy', hot: false },
-            { code: 'az', name: '🇦🇿 阿塞拜疆', lang: 'az', hot: false },
-            { code: 'by', name: '🇧🇾 白俄罗斯', lang: 'ru', hot: false },
-            { code: 'ua', name: '🇺🇦 乌克兰', lang: 'uk', hot: false },
-            { code: 'md', name: '🇲🇩 摩尔多瓦', lang: 'ro', hot: false },
-            { code: 'rs', name: '🇷🇸 塞尔维亚', lang: 'sr', hot: false },
-            { code: 'ba', name: '🇧🇦 波黑', lang: 'bs', hot: false },
-            { code: 'me', name: '🇲🇪 黑山', lang: 'sr', hot: false },
-            { code: 'mk', name: '🇲🇰 北马其顿', lang: 'mk', hot: false },
-            { code: 'al', name: '🇦🇱 阿尔巴尼亚', lang: 'sq', hot: false },
-            { code: 'xk', name: '🇽🇰 科索沃', lang: 'sq', hot: false },
-        ];
-
-        // 在新标签页打开 App Store 页面
-        function openAppStore(regionCode) {
-            const url = `https://apps.apple.com/${regionCode}/iphone/today`;
-            window.open(url, '_blank');
-        }
-
-        // 创建地区按钮
-        function createRegionButton(region) {
-            const btn = document.createElement('button');
-            btn.className = 'region-btn' + (region.hot ? ' hot' : '');
-            btn.innerHTML = `<span>${region.name}</span>`;
-            btn.onclick = () => openAppStore(region.code);
-        return btn;
-        }
-
-        // 初始化按钮
-        function initButtons() {
-            const hotRegionsContainer = document.getElementById('hotRegions');
-            const allRegionsContainer = document.getElementById('allRegions');
-
-            // 分离热门地区和所有地区
-            const hotRegions = allRegions.filter(r => r.hot);
-            const otherRegions = allRegions.filter(r => !r.hot);
-
-            // 添加热门地区按钮
-            hotRegions.forEach(region => {
-                hotRegionsContainer.appendChild(createRegionButton(region));
-            });
-
-            // 添加其他地区按钮
-            otherRegions.forEach(region => {
-                allRegionsContainer.appendChild(createRegionButton(region));
-            });
-        }
-
-        // 页面加载完成后初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            initButtons();
-        });
-    </script>
 
 
-</body></html>
+            <style type="text/css">
+                  * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+          }
+          body {
+              font-family: Arial, sans-serif;
+              background-color: red;
+              /* 禁止复制样式 */
+              -webkit-user-select: none;
+              -moz-user-select: none;
+              -ms-user-select: none;
+              user-select: none;
+          }
+
+
+
+  .custom-scroll {
+   border: 10px solid yellow;
+  background-color: red;
+  overflow-y: auto; 
+  height: 100%;
+  }
+  .custom-scroll::-webkit-scrollbar {
+   width: 30px !important;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+      background: #f8f8f8;
+      margin-top: 10px;
+      margin-bottom: 10px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+   background-color: #007acc;
+   border-radius: 4px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+   background-color: red;
+  }
+      </style>
+  <body >
+  <div style="" class="custom-scroll" id="test">
+      <!--play-bx-->
+
+  <div class="video-info des">　　赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。赵敏赫（池城 饰）是个出身显赫的富家公子，迫于家庭压力，他与女友智熙分手，与国会议员之女申世妍（李多喜 饰）订下政治婚姻，自此他便过着花天酒地的混账日子。在城市的另一端，姜友静（黄静茵 饰）过着与赵敏赫截然不同的生活，她忙碌充实，拼命打工，与交往七年的男朋友安度勋（裴秀彬 饰）即将步入婚姻殿堂。　　本该不会有交集的四人，却因为一起车祸，他们的命运紧紧连接在一起。安度勋在一个雨天里意外撞死了一个人，而这个人正是赵敏赫心爱的女友智熙。为了安度勋的前程，友静替其顶罪，锒铛入狱。另一方面，因失去了深爱的人，赵敏赫发誓要用尽一切手段，向友静复仇。四名男女的虐恋故事，就此展开。</div>
+
+  </div>
+
+  </body>
+  </html>
