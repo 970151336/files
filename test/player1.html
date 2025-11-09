@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>正在播放</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+          /* 禁止复制样式 */
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+        .video-container {
+          width: 100%;
+          position: relative;
+            padding-top: 56.25%; /* 9 / 16 * 100% */
+        }
+        #video-player {
+          position: absolute;
+          top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+
+          background-color: black;
+        }
+        
+        #episode-switch {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 0px 0px;
+          background-color: white;
+          border-radius: 10px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          margin: 20px 20px;
+          position: relative;
+        }
+        
+        #episode-switch select{
+          width: 100vw;
+          height: 44px;
+          background-color: white;
+          box-sizing: border-box;
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          color: red;
+          font-size: 18px;
+        }
+        
+        #ad {
+            padding: 0px;
+            height: 0px;
+            margin: 10px 20px 0px 20px;
+        }
+    </style>
+</head>
+
+<body>
+      <div class="video-container">
+
+    <video id="video-player" controls="controls" webkit-playsinline playsinline autoplay></video>
+        </div>
+
+    <div id="episode-switch">
+        <select onchange="getLiveKey(this.options[this.selectedIndex].value)" id="playURL">
+            <!--                             <option value="">线路1</option>
+ -->
+        </select>
+    </div>
+    <div id="ad"></div>
+    <script>
+        // 模拟剧集列表，实际应用中可从后端获取
+        
+        const episodes = JSON.parse(localStorage.getItem('video'));
+        let currentEpisodeIndex = JSON.parse(localStorage.getItem('index'));; // 初始为第3集，索引从0开始
+
+        const episodeDropdown = document.getElementById('playURL');
+        const videoPlayer = document.getElementById('video-player');
+        
+        function getLiveKey(value){
+          nativeLog(value);
+                      // alert('你点击的链接是: ' + value);
+                      // 这里添加实际切换视频播放的逻辑，例如：
+        videoPlayer.src = value;
+        videoPlayer.load();
+        videoPlayer.play();
+                fullAd();
+
+        }
+        
+        function renderEpisodeDropdown() {
+          episodes.forEach((episode, index) => {
+            const button = document.createElement('option');
+            button.textContent = episode.title;
+            button.value = episode.url;
+            episodeDropdown.appendChild(button);
+          });
+        }
+        
+        
+        function fullAd(){
+          const obj = {"type":"full"};
+          postNativeMessage(obj);
+        }
+        
+          function loadNativeAd(adItem){
+                   const rect = adItem.getBoundingClientRect();
+                   const frame = {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
+                   const obj = {"type":"loadNative", "frame":frame,"id":adItem.id,"color":"0.11|0.11|0.12|1.0","radius":10};
+                   postNativeMessage(obj);
+               }
+               
+               function insertNativeAd(body){
+                   const adItem = document.getElementById(body['id']);
+                   adItem.style.height = body['frame']['height']+"px";//adItem.style.height = '200px';
+                   const rect = adItem.getBoundingClientRect();
+                   const frame = {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
+                   const obj = {"type":"native", "frame":frame,"id":adItem.id};
+                   postNativeMessage(obj);//nativeLog(obj);
+               }
+               
+               function receiveNativeMessage(body) {
+                   var type = body['type'];
+                   if(type === 'loadNative'){
+                       insertNativeAd(body);
+                       return true;
+                   }
+                   return true;
+               }
+               function postNativeMessage(body) {
+                 if (typeof window.webkit === 'object' && typeof window.webkit.messageHandlers === 'object') {
+                   window.webkit.messageHandlers.nativeReceiver.postMessage(body);
+                 } else {
+                   console.log('当前环境不支持 WebKit 消息处理');
+                 }
+               }
+               function nativeLog(body) {
+                   var obj = {"type":"log", "obj":body};
+                   postNativeMessage(obj);
+               }
+        fullAd();
+        const adItem = document.getElementById("ad");
+        loadNativeAd(adItem);
+        
+        renderEpisodeDropdown();
+                  episodeDropdown.selectedIndex = currentEpisodeIndex;
+
+        // 这里添加实际切换视频播放的逻辑，例如：
+        videoPlayer.src = episodes[currentEpisodeIndex].url;
+        videoPlayer.load();
+        videoPlayer.play();
+    </script>
+</body>
+
+</html>
