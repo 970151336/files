@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>list</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+                      /* 禁止复制样式 */
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+
+        .ad-item {
+            background-color: white;
+            border-radius: 0.5rem;
+            height: 0px;
+        }
+
+
+.movie-item {
+    display: flex;
+    margin: -10px;
+    height: 100px;
+}
+
+.movie-item img {
+    width: 67px;
+    height: 100px;
+    margin-right: 10px;
+}
+
+.movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden; /* 隐藏溢出的内容 */
+}
+
+        .movie-info p{
+            font-size: 12.5px;
+            color: darkgray;
+        }
+
+.rating {
+    color: red;
+}
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto py-8 px-4">
+        <ul id="list" class="space-y-4">
+            <!-- 初始数据会在这里动态添加 -->
+<!--            <li class="bg-white p-6 rounded-lg shadow-md">-->
+<!--                <div class="movie-item">-->
+<!--                  <img src="https://liangcang-material.alicdn.com/prod/upload/a6b6b1ec6ac84220bc29f26297f14d35.webp.jpg" alt="银河封神纪第一季">-->
+<!--                  <div class="movie-info">-->
+<!--                      <h2>银河封神纪第一季<span class="rating">6.0</span></h2>-->
+<!--                      <p>2024 / 日本 / 剧情 / 犯罪 / 悬疑 / 惊悚</p>-->
+<!--                      <p>积因宇宙，是一个由金、木、水、火、土五大星系组成，以能量积木充当能源的世界...</p>-->
+<!--                  </div>-->
+<!--              </div>-->
+<!--            </li>-->
+        </ul>
+<!--        <div id="loading" class="text-center text-gray-500 my-4 hidden">-->
+        <div id="loading" class="text-center text-gray-500 my-4">
+            <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
+        </div>
+    </div>
+
+    <script>
+     
+
+        let currentPage = 1;
+        const list = document.getElementById('list');
+        const loading = document.getElementById('loading');
+        let hasMore = true;
+        let isLoadingData = false;
+
+
+
+        function getData(page){
+            // 使用 fetch API 发起跨域请求
+            fetch('http://192.168.1.8/app/public/api/cjapi?debug=99&page='+page)
+                .then(response => response.json())
+                .then(data => {
+                    //console.log(data);
+                    for (let i = 0; i < data.length; i++) {
+                        const item = document.createElement('li');
+                        item.className = 'bg-white p-6 rounded-lg shadow-md';
+
+                        const  vod = data[i];
+                        const movieItem = document.createElement('div');
+                        movieItem.classList.add('movie-item');
+                        movieItem.innerHTML = `
+                <img src="${vod.vod_pic}" alt="${vod.vod_name}">
+                <div class="movie-info">
+                    <h2>${vod.vod_name}  <span class="rating">${vod.vod_score}</span></h2>
+                    <p>${vod.vod_year} / ${vod.vod_area} / ${vod.vod_class}</p>
+                    <p>${vod.vod_content}</p>
+                </div>
+`;
+                        item.appendChild(movieItem);
+                        list.appendChild(item);
+
+                        item.addEventListener('click', function() {
+
+                            localStorage.setItem('item', JSON.stringify(vod));
+                            var body = {"type":"web", "url":"http://192.168.1.8/dydd.html?list=1",'title':vod.vod_name};
+                            postNativeMessage(body);
+                            //const data = localStorage.getItem('item');
+                            //console.log(data);    
+                        });
+                    }
+                    insertAd();
+                    //loading.classList.add('hidden');
+                    if (data.length == 0) {
+                        loading.classList.add('hidden');
+                        const endMessage = document.createElement('li');
+                        endMessage.className = 'text-center text-gray-500 my-4';
+                        endMessage.textContent = '没有更多数据了';
+                        list.appendChild(endMessage);
+                        hasMore = false;
+                    }
+                    isLoadingData = false;
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                });
+        }
+
+      
+
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        // 随机选取屏幕内的一条数据
+        function selectRandomVisibleItem() {
+            const listItems = list.children;
+            const visibleItems = [];
+
+            for (let i = 0; i < listItems.length; i++) {
+                if (isElementInViewport(listItems[i])) {
+                    visibleItems.push(listItems[i]);
+                }
+            }
+
+            if (visibleItems.length > 0) {
+                const randomIndex = Math.floor(Math.random() * visibleItems.length);
+                const selectedItem = visibleItems[randomIndex];
+                return selectedItem;
+            } else {
+                return null;
+            }
+        }
+
+        function insertAd() {
+            const randomItem = selectRandomVisibleItem();
+            if (randomItem) {
+                const date = new Date();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                const formattedDate = `${hours}:${minutes}:${seconds}`;
+
+                const adItem = document.createElement('li');
+                adItem.className = 'ad-item';
+                //adItem.id = 'ad_'+(new Date()).getTime();
+                adItem.id = 'ad'+(new Date()).getTime()+'_'+formattedDate;
+
+                // adItem.textContent = `Ad(${adItem.id}) loading...`;//'Ad loading...'+adItem.id;
+                list.insertBefore(adItem, randomItem);
+                loadNativeAd(adItem);
+                
+            }
+            
+        }
+
+        function loadNativeAd(adItem){
+            var rect = adItem.getBoundingClientRect();
+            var frame = {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
+            var obj = {"type":"loadNative", "frame":frame,"id":adItem.id,"color":"0.11|0.11|0.12|1.0","radius":8};
+            postNativeMessage(obj);
+        }
+        
+        function insertNativeAd(body){
+            var adItem = document.getElementById(body['id']);
+            adItem.style.height = body['frame']['height']+"px";//adItem.style.height = '200px';
+          
+            const adItems = Array.from(document.getElementsByClassName('ad-item'));
+            // 假设要获取索引为 3 的元素以及它后面的元素
+            const index = adItems.indexOf(adItem);
+            const updateAdItems = adItems.slice(index);//nativeLog(index);
+            for (let i = 0; i < updateAdItems.length; i++) {
+                const updateAdItem = updateAdItems[i];
+                const rect = updateAdItem.getBoundingClientRect();
+                const frame = {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
+                const obj = {"type":"native", "frame":frame,"id":updateAdItem.id};
+                postNativeMessage(obj);//nativeLog(obj);
+            }
+        }
+        
+        function receiveNativeMessage(body) {
+            var type = body['type'];
+            if(type === 'loadNative'){
+                insertNativeAd(body);
+                return true;
+            }
+            return true;
+        }
+
+        function postNativeMessage(body) {
+            if (typeof window.webkit === 'object' && typeof window.webkit.messageHandlers === 'object') {
+                window.webkit.messageHandlers.nativeReceiver.postMessage(body);
+            } else {
+                console.log('当前环境不支持 WebKit 消息处理');
+            }
+        }
+
+        function nativeLog(body) {
+            var obj = {"type":"log", "obj":body};
+            postNativeMessage(obj);
+        }
+
+        // 防抖函数
+        function debounce(func, delay) {
+            let timer = null;
+            return function () {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    func.apply(this, arguments);
+                }, delay);
+            };
+        }
+
+        const handleScroll = debounce(() => {
+            if (!hasMore || isLoadingData) return;
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 20) {
+                currentPage++;
+                isLoadingData = true;
+                getData(currentPage);
+            }
+        }, 100);
+
+        window.addEventListener('scroll', handleScroll);
+        // 加载第一页数据
+        getData(currentPage);
+        //const data = localStorage.getItem('item');
+        //console.log(data);    
+    </script>
+</body>
+
+</html>
