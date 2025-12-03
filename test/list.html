@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=auto">
+<!--   <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=contain">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"> -->
+  
+  <title>模拟数据列表</title>
+  <!-- 引入 Tailwind CSS 简化样式（也可替换为自定义 CSS） -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Font Awesome 图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 自定义配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#6B7280',
+            light: '#F3F4F6',
+            dark: '#1F2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .list-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px];
+      }
+      .loading-skeleton {
+        @apply animate-pulse bg-gray-200 rounded;
+      }
+    }
+  </style>
+</head>
+<body class="font-sans text-dark" style="background-color: red;">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- 页面标题 -->
+    <header class="mb-8">
+      <h1 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark flex items-center">
+        <i class="fa fa-list-ul text-primary mr-3"></i>
+        模拟数据列表（30条）
+      </h1>
+      <p class="text-secondary mt-2">基于时间戳生成的模拟数据，支持响应式布局</p>
+    </header>
+
+    <!-- 搜索框 -->
+    <div class="mb-6">
+      <div class="relative max-w-2xl">
+        <input 
+          type="text" 
+          placeholder="搜索数据..." 
+          class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+        >
+        <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      </div>
+    </div>
+
+    <!-- 列表容器 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- 列表表头 -->
+      <div class="hidden md:flex bg-light px-6 py-4 border-b border-gray-200 font-medium">
+        <div class="w-12 text-center">#ID</div>
+        <div class="flex-1">标题</div>
+        <div class="w-32">创建时间</div>
+        <div class="w-24 text-center">状态</div>
+        <div class="w-20 text-center">操作</div>
+      </div>
+
+      <!-- 列表内容（通过 JS 动态生成 30 条数据） -->
+      <div id="data-list" class="divide-y divide-gray-100">
+        <!-- 加载中骨架屏（初始显示） -->
+        <div id="loading" class="px-6 py-8">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div class="h-6 w-12 loading-skeleton"></div>
+            <div class="h-6 loading-skeleton"></div>
+            <div class="h-6 w-32 loading-skeleton"></div>
+            <div class="h-6 w-24 loading-skeleton"></div>
+            <div class="h-6 w-20 loading-skeleton"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div class="h-6 w-12 loading-skeleton"></div>
+            <div class="h-6 loading-skeleton"></div>
+            <div class="h-6 w-32 loading-skeleton"></div>
+            <div class="h-6 w-24 loading-skeleton"></div>
+            <div class="h-6 w-20 loading-skeleton"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="h-6 w-12 loading-skeleton"></div>
+            <div class="h-6 loading-skeleton"></div>
+            <div class="h-6 w-32 loading-skeleton"></div>
+            <div class="h-6 w-24 loading-skeleton"></div>
+            <div class="h-6 w-20 loading-skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页控件（移动端隐藏，PC 端显示） -->
+    <div class="mt-6 flex justify-between items-center hidden md:flex">
+      <div class="text-secondary text-sm">
+        显示 1-30 条，共 30 条
+      </div>
+      <div class="flex items-center space-x-1">
+        <button class="px-3 py-1 rounded border border-gray-300 text-secondary hover:bg-light disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <i class="fa fa-angle-left"></i>
+        </button>
+        <button class="px-3 py-1 rounded bg-primary text-white border border-primary">1</button>
+        <button class="px-3 py-1 rounded border border-gray-300 hover:bg-light">2</button>
+        <button class="px-3 py-1 rounded border border-gray-300 hover:bg-light">
+          <i class="fa fa-angle-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 移动端加载更多按钮 -->
+    <div class="mt-4 md:hidden text-center">
+      <button id="load-more" class="px-4 py-2 bg-light rounded-lg text-primary hover:bg-primary/10 transition-all disabled:opacity-50" disabled>
+        已加载全部数据
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 模拟数据生成函数
+    function generateMockData(count = 30) {
+      const data = [];
+      const statusList = [
+        { text: '正常', color: 'bg-green-100 text-green-800' },
+        { text: '待审核', color: 'bg-yellow-100 text-yellow-800' },
+        { text: '已禁用', color: 'bg-red-100 text-red-800' },
+        { text: '草稿', color: 'bg-blue-100 text-blue-800' }
+      ];
+      const titles = [
+        '修复首页轮播图加载缓慢问题',
+        '新增用户个人中心数据统计模块',
+        '优化移动端适配样式',
+        '添加导出Excel功能',
+        '修复登录超时bug',
+        '新增批量操作接口',
+        '优化搜索算法性能',
+        '添加权限管理功能',
+        '修复数据展示异常问题',
+        '新增数据可视化图表'
+      ];
+
+      // 生成30条数据（ID从1到30，时间倒序）
+      for (let i = count; i >= 1; i--) {
+        const randomStatus = statusList[Math.floor(Math.random() * statusList.length)];
+        const randomTitle = titles[Math.floor(Math.random() * titles.length)];
+        // 生成随机时间（近30天内）
+        const randomDays = Math.floor(Math.random() * 30);
+        const createTime = new Date();
+        createTime.setDate(createTime.getDate() - randomDays);
+        
+        data.push({
+          id: i,
+          title: `${randomTitle}（#${i}）`,
+          createTime: createTime.toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          status: randomStatus
+        });
+      }
+      return data;
+    }
+
+    // 渲染列表数据
+    function renderDataList(data) {
+      const listContainer = document.getElementById('data-list');
+      const loadingContainer = document.getElementById('loading');
+      
+      // 隐藏加载骨架屏
+      loadingContainer.remove();
+
+      // 渲染每条数据
+      data.forEach(item => {
+        const listItem = document.createElement('div');
+        listItem.className = 'px-6 py-4 list-hover';
+        
+        // 移动端和PC端布局适配
+        listItem.innerHTML = `
+          <!-- 移动端布局 -->
+          <div class="md:hidden">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-sm font-medium">${item.title}</span>
+              <span class="text-xs px-2 py-1 rounded-full ${item.status.color}">${item.status.text}</span>
+            </div>
+            <div class="flex justify-between text-sm text-secondary">
+              <span>ID: ${item.id}</span>
+              <span>${item.createTime}</span>
+            </div>
+            <div class="mt-2 text-right">
+              <button class="text-primary text-sm hover:text-primary/80">
+                <i class="fa fa-eye mr-1"></i>查看
+              </button>
+            </div>
+          </div>
+
+          <!-- PC端布局 -->
+          <div class="hidden md:flex items-center">
+            <div class="w-12 text-center text-secondary">${item.id}</div>
+            <div class="flex-1 font-medium">${item.title}</div>
+            <div class="w-32 text-secondary">${item.createTime}</div>
+            <div class="w-24 text-center">
+              <span class="text-xs px-2 py-1 rounded-full ${item.status.color}">${item.status.text}</span>
+            </div>
+            <div class="w-20 text-center">
+              <button class="text-primary hover:text-primary/80 transition-colors">
+                <i class="fa fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        listContainer.appendChild(listItem);
+      });
+    }
+
+    // 页面加载完成后生成并渲染数据（模拟网络请求延迟）
+    window.addEventListener('DOMContentLoaded', () => {
+      // 模拟1秒网络请求延迟
+      setTimeout(() => {
+        const mockData = generateMockData(30);
+        renderDataList(mockData);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
