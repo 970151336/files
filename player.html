@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正在播放</title>
+    <script language="javascript" src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            /* 关键：让容器真正全屏 */
+            margin: 0;
+            overflow: hidden;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .player-container {
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+            object-fit: cover;
+        }
+        .player-click-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 50px;
+            z-index: 1;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            opacity: 0;
+            z-index: 2;
+        }
+        .loading.show {
+            opacity: 1;
+        }
+        @keyframes spin {
+            to { transform: translate(-50%,-50%) rotate(360deg) }
+        }
+
+        .art-layer-lock {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .art-layer-lock.show {
+            opacity: 1;
+        }
+        .art-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+
+        /* 进度条 - 修复圆圈拖动 */
+        .progress-wrap {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: 50px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .progress-wrap.show {
+            opacity: 1;
+        }
+        .progress-buffered {
+            position: absolute;
+            height: 100%;
+            background: rgba(255,255,255,0.4);
+            width: 0%;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .progress-played {
+            position: absolute;
+            height: 100%;
+            background: #ff2b59;
+            width: 0%;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .progress-dot {
+            position: absolute;
+            left: 0%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #ff2b59;
+            border-radius: 50%;
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            padding: 0 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 3;
+        }
+        .controls.show {
+            opacity: 1;
+        }
+        .ctrl-btn {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .ctrl-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+        .time {
+            color: #fff;
+            font-size: 14px;
+        }
+        .right-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .art-control-pip .art-icon-pip svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+        }
+    </style>
+</head>
+
+<body>
+<div class="player-container" id="player">
+    <video id="video"
+           playsinline
+           webkit-playsinline
+           autoplay></video>
+    <div class="player-click-area" id="clickArea"></div>
+    <div class="loading" id="loading"></div>
+
+    <div class="art-layer art-layer-lock" id="lockLayer" data-index="1">
+        <i class="art-icon art-icon-lock" style="display: none;">
+            <svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M298.667 426.667v-85.334a213.333 213.333 0 1 1 426.666 0v85.334H768A85.333 85.333 0 0 1 853.333 512v256A85.333 85.333 0 0 1 768 853.333H256A85.333 85.333 0 0 1 170.667 768V512A85.333 85.333 0 0 1 256 426.667h42.667zM512 213.333a128 128 0 0 0-128 128v85.334h256v-85.334a128 128 0 0 0-128-128z" fill="#fff"></path>
+            </svg>
+        </i>
+        <i class="art-icon art-icon-unlock" style="display: inline-flex;">
+            <svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="m666.752 194.517-49.365 74.112A128 128 0 0 0 384 341.333l.043 85.334h384A85.333 85.333 0 0 1 853.376 512v256a85.333 85.333 0 0 1-85.333 85.333H256A85.333 85.333 0 0 1 170.667 768V512A85.333 85.333 0 0 1 256 426.667h42.667v-85.334a213.333 213.333 0 0 1 368.085-146.816z" fill="#fff"></path>
+            </svg>
+        </i>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-buffered" id="buffered"></div>
+        <div class="progress-played" id="played"></div>
+        <div class="progress-dot" id="dot"></div>
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="ctrl-btn" id="playBtn">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+        </button>
+        <button class="ctrl-btn" id="volBtn">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"></path></svg>
+        </button>
+        <div class="time" id="timeTxt">00:00</div>
+        <div class="right-controls">
+<!--            <button class="ctrl-btn" id="setBtn">-->
+<!--                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.6.06-.94s-.02-.64-.06-.94l2.03-1.58c.17-.13.2-.4.06-.59l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58c-.17.13-.2.4-.06.59l1.92 3.32c-.12.22-.37.29-.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c-.04.24-.24-.41-.48-.41h-3.84c-.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>-->
+<!--            </button>-->
+
+            <div class="art-control art-control-pip" data-index="40" id="pipBtn">
+                <i class="art-icon art-icon-pip">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" height="32" width="32">
+                        <path d="M25 17h-8v6h8v-6Zm4 8V10.98C29 9.88 28.1 9 27 9H9c-1.1 0-2 .88-2 1.98V25c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2Zm-2 .02H9V10.97h18v14.05Z"></path>
+                    </svg>
+                </i>
+            </div>
+
+            <button class="ctrl-btn" id="fullBtn">
+                <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const player = document.getElementById('player');
+    const clickArea = document.getElementById('clickArea');
+    const loading = document.getElementById('loading');
+    const lockLayer = document.getElementById('lockLayer');
+    const lockIcon = lockLayer.querySelector('.art-icon-lock');
+    const unlockIcon = lockLayer.querySelector('.art-icon-unlock');
+    const progressWrap = document.getElementById('progressWrap');
+    const buffered = document.getElementById('buffered');
+    const played = document.getElementById('played');
+    const dot = document.getElementById('dot');
+    const controls = document.getElementById('controls');
+    const playBtn = document.getElementById('playBtn');
+    const timeTxt = document.getElementById('timeTxt');
+    const pipBtn = document.getElementById('pipBtn');
+
+    let hideTimer = null;
+    let isLive = null;
+    let isDrag = false;
+    let isLocked = false;
+
+    function showControlAutoHide() {
+        if (isLocked) return;
+        controls.classList.add('show');
+        lockLayer.classList.add('show');
+        if (isLive === false) progressWrap.classList.add('show');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => hideAllControl(), 5000);
+    }
+    function hideAllControl() {
+        controls.classList.remove('show');
+        progressWrap.classList.remove('show');
+        lockLayer.classList.remove('show');
+    }
+
+    clickArea.addEventListener('click', () => {
+        if (isLocked) { lockLayer.classList.toggle('show'); return; }
+        controls.classList.contains('show') ? hideAllControl() : showControlAutoHide();
+    });
+
+    lockLayer.addEventListener('click', () => {
+        isLocked = !isLocked;
+        if (isLocked) {
+            lockIcon.style.display = 'inline-flex';
+            unlockIcon.style.display = 'none';
+            hideAllControl();
+        } else {
+            lockIcon.style.display = 'none';
+            unlockIcon.style.display = 'inline-flex';
+            showControlAutoHide();
+        }
+    });
+
+    playBtn.onclick = () => {
+        if (isLocked) return;
+        video.paused ? video.play().catch(()=>{}) : video.pause();
+    };
+    video.addEventListener('play', () => {
+        playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
+    });
+    video.addEventListener('pause', () => {
+        playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
+    });
+
+    pipBtn.onclick = async () => {
+        if (isLocked) return;
+        try {
+            document.pictureInPictureElement ? await document.exitPictureInPicture() : await video.requestPictureInPicture();
+        } catch {}
+    };
+
+    // ========== 进度条拖动（已修复圆圈可拖动）==========
+    function startDrag(e) {
+        if (isLive || isLocked) return;
+        isDrag = true;
+        updateDrag(e);
+    }
+    function updateDrag(e) {
+        if (!isDrag) return;
+        const r = progressWrap.getBoundingClientRect();
+        let x = e.clientX - r.left;
+        let p = Math.max(0, Math.min(1, x / r.width));
+        played.style.width = p * 100 + '%';
+        dot.style.left = p * 100 + '%';
+        video.currentTime = p * video.duration;
+    }
+
+    progressWrap.addEventListener('mousedown', startDrag);
+    dot.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', updateDrag);
+    document.addEventListener('mouseup', () => isDrag = false);
+
+    progressWrap.addEventListener('touchstart', e => { e.preventDefault(); startDrag(e.touches[0]); });
+    document.addEventListener('touchmove', e => { if(isDrag){ e.preventDefault(); updateDrag(e.touches[0]); } });
+    document.addEventListener('touchend', () => isDrag = false);
+    // ====================================================
+
+    video.addEventListener('timeupdate', updateProgress);
+    video.addEventListener('progress', updateProgress);
+    function updateProgress() {
+        if (isLive === null){
+            if ((video.duration > 60) && video.duration !== Infinity && !isNaN(video.duration)){
+                isLive = false;
+                progressWrap.classList.add('show');
+            }else {
+                isLive = true;
+            }
+        }
+
+        if (isLive === true){
+            timeTxt.textContent = fmt(video.currentTime);
+        }else if (isLive === false){
+            timeTxt.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+            const per = (video.currentTime / video.duration) * 100;
+            played.style.width = per + '%';
+            dot.style.left = per + '%';
+            if (video.buffered.length > 0) {
+                const end = video.buffered.end(video.buffered.length - 1);
+                buffered.style.width = (end / video.duration) * 100 + '%';
+            }
+        }
+        console.log(video.duration);
+
+        // if (isLive || !video.duration || isDrag) return;
+        // timeTxt.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+        // const per = (video.currentTime / video.duration) * 100;
+        // played.style.width = per + '%';
+        // dot.style.left = per + '%';
+        // if (video.buffered.length > 0) {
+        //     const end = video.buffered.end(video.buffered.length - 1);
+        //     buffered.style.width = (end / video.duration) * 100 + '%';
+        // }
+    }
+
+    function fmt(t) {
+        const m = String(Math.floor(t / 60)).padStart(2, '0');
+        const s = String(Math.floor(t % 60)).padStart(2, '0');
+        return m + ':' + s;
+    }
+
+    document.getElementById('volBtn').onclick = () => { if(isLocked) return; video.muted = !video.muted; };
+    document.getElementById('fullBtn').onclick = () => {
+        if(isLocked) return;
+        // 先播放（iOS 要求）
+        video.play().then(() => {
+            // iOS 全屏 API
+            if (video.webkitEnterFullscreen) {
+                video.webkitEnterFullscreen();
+            }
+            // 标准浏览器
+            else if (video.requestFullscreen) {
+                video.requestFullscreen();
+            }
+        }).catch(err => {
+            console.log('播放/全屏失败:', err);
+        });
+        //document.fullscreenElement ? document.exitFullscreen() : player.requestFullscreen();
+    };
+
+    video.addEventListener('waiting', () => loading.classList.add('show'));
+    video.addEventListener('canplay', () => loading.classList.remove('show'));
+
+    function load(url) {
+        // if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        //     video.src = url;
+        // } else {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+        // }
+        video.play();
+    }
+
+    function getQueryString(name) {
+        const reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        const r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return decodeURIComponent(r[2]);
+        }
+        return "";
+    }
+
+    let playUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+    const u = getQueryString("u");
+    if (u) {
+        try {
+            playUrl = atob(u);
+            load(playUrl);
+        } catch (e) {
+            console.log("失败", e);
+            load(playUrl);
+        }
+    }else {
+        load(playUrl);
+    }
+    //load("{$url}");
+    //load('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
+
+</script>
+</body>
+</html>
