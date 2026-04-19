@@ -179,12 +179,15 @@
         try {
             playUrl = atob(u);
             videoPlayer.src = playUrl;
+            console.log("playUrl", videoPlayer.src);
         } catch (e) {
             console.log("失败", e);
             videoPlayer.src = playUrl;
+            console.log("playUrl", videoPlayer.src);
         }
     }else {
         videoPlayer.src = playUrl;
+        console.log("playUrl", videoPlayer.src);
     }
     // 显示中央播放/暂停按钮
     function showPlayPauseButton() {
@@ -410,7 +413,7 @@
 
     // 视频元数据加载后更新UI
     videoPlayer.addEventListener('loadedmetadata', () => {
-        console.log('loadedmetadata');
+        console.log("loadedmetadata", videoPlayer.src);
         updatePlayPauseIcon();
         updateProgress();
     });
