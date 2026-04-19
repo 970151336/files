@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>正在播放</title>
     <script language="javascript" src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/vconsole/dist/vconsole.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -295,6 +295,9 @@
     clickArea.addEventListener('click', () => {
         if (isLocked) { lockLayer.classList.toggle('show'); return; }
         controls.classList.contains('show') ? hideAllControl() : showControlAutoHide();
+        if (video.paused) {
+            video.play();
+        }
     });
 
     lockLayer.addEventListener('click', () => {
@@ -379,16 +382,6 @@
             }
         }
         console.log(video.duration);
-
-        // if (isLive || !video.duration || isDrag) return;
-        // timeTxt.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
-        // const per = (video.currentTime / video.duration) * 100;
-        // played.style.width = per + '%';
-        // dot.style.left = per + '%';
-        // if (video.buffered.length > 0) {
-        //     const end = video.buffered.end(video.buffered.length - 1);
-        //     buffered.style.width = (end / video.duration) * 100 + '%';
-        // }
     }
 
     function fmt(t) {
@@ -420,13 +413,23 @@
     video.addEventListener('canplay', () => loading.classList.remove('show'));
 
     function load(url) {
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log("playUrl", videoPlayer.src);
+        if (typeof Hls === 'undefined' || !Hls.isSupported()) {
             video.src = url;
-        } else {
+            console.log('不支持 hls.js');
+        }else{
+            console.log('hls.js 播放');
             const hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
         }
+        // if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        //     video.src = url;
+        // } else {
+        //     const hls = new Hls();
+        //     hls.loadSource(url);
+        //     hls.attachMedia(video);
+        // }
         video.play();
     }
 
@@ -437,6 +440,11 @@
             return decodeURIComponent(r[2]);
         }
         return "";
+    }
+
+    const d = getQueryString("d");
+    if (d) {
+        const vConsole = new VConsole();
     }
 
     let playUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
