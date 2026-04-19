@@ -413,7 +413,7 @@
     video.addEventListener('canplay', () => loading.classList.remove('show'));
 
     function load(url) {
-        console.log("playUrl", videoPlayer.src);
+        console.log("playUrl", url);
         if (typeof Hls === 'undefined' || !Hls.isSupported()) {
             video.src = url;
             console.log('不支持 hls.js');
