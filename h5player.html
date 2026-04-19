@@ -171,12 +171,15 @@
         try {
             playUrl = atob(u);
             videoPlayer.src = playUrl;
+            document.title = playUrl;
         } catch (e) {
             console.log("失败", e);
             videoPlayer.src = playUrl;
+            document.title = playUrl;
         }
     }else {
         videoPlayer.src = playUrl;
+        document.title = playUrl;
     }
     // 显示中央播放/暂停按钮
     function showPlayPauseButton() {
