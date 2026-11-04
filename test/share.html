@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>分享Demo - Toast版</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{padding:30px 16px;background:#111;color:#fff;font-family:system-ui}
+.share-btn{
+  width:100%;
+  padding:14px 0;
+  background:#9370DB;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:17px;
+}
+.toast{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.75);
+  color:#fff;
+  padding:12px 22px;
+  border-radius:8px;
+  font-size:15px;
+  z-index:9999;
+  display:none;
+}
+</style>
+</head>
+<body>
+
+<button class="share-btn" id="shareBtn">📤 分享影片</button>
+<div class="toast" id="toast"></div>
+
+<script>
+const $shareBtn = document.getElementById('shareBtn');
+const $toast = document.getElementById('toast');
+
+// Toast
+function showToast(msg, duration = 1800){
+  $toast.innerText = msg;
+  $toast.style.display = 'block';
+  setTimeout(()=>{
+    $toast.style.display = 'none';
+  }, duration)
+}
+
+// 复制文本
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    console.error('复制失败',e);
+    return false;
+  }
+}
+
+// ======================
+// 这里替换成你接口拿到的 info
+// ======================
+const vodInfo = {
+  vod_name: "测试影片",
+  vod_content: "好看的影片简介",
+  vod_pic: "https://picsum.photos/400/225",
+};
+
+// 分享主函数
+async function handleShare(){
+  const title = vodInfo?.vod_name || '分享';
+  const text  = vodInfo?.vod_content || '';
+  const url   = location.href;
+  const imgSrc= vodInfo?.vod_pic;
+
+  // 优先系统分享
+  if(navigator.share && navigator.canShare){
+    let shareData = { title, text, url };
+
+    // 尝试带上图片
+    if(imgSrc){
+      try{
+        const resp = await fetch(imgSrc);
+        const blob = await resp.blob();
+        const imgFile = new File([blob], 'share.jpg', {type:blob.type});
+        shareData.files = [imgFile];
+
+        // 校验是否支持文件分享，不支持就删掉图片
+        if(!navigator.canShare(shareData)){
+          delete shareData.files;
+        }
+      }catch(errImg){
+        console.log('图片无法加载，跳过图片分享',errImg);
+      }
+    }
+
+    try{
+      await navigator.share(shareData);
+      showToast('分享成功');
+    }catch(err){
+      // 用户点取消也进这里，不报错提示
+      console.log('分享取消/异常',err);
+    }
+  }else{
+    // 降级：复制链接
+    const ok = await copyText(url);
+    if(ok){
+      showToast('不支持系统分享，链接已复制');
+    }else{
+      showToast('复制失败，请手动复制链接');
+    }
+  }
+}
+
+$shareBtn.addEventListener('click', handleShare);
+</script>
+</body>
+</html>
